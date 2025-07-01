@@ -1,0 +1,10 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE}
+    image: ${IMAGE_NAME}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      AZP_AGENT_NAME: ${HOSTNAME}

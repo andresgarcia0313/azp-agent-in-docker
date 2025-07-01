@@ -1,19 +1,24 @@
-docker build --tag azp-agent:linux --file Dockerfile .
-#            --interactive --tty \
-docker run -d \
-  --name azp-agent-linux \
-  --restart unless-stopped \
-  -e AZP_URL="https://dev.azure.com/andresgarcia0313" \
-  -e AZP_TOKEN="" \
-  -e AZP_POOL="nexo-pool" \
-  -e AZP_AGENT_NAME="nexo-pool-linux-agent-docker" \
-  azp-agent:linux
+#!/bin/bash
 
-docker run -d \
-  --name azp-agent-linux2 \
-  --restart unless-stopped \
-  -e AZP_URL="https://dev.azure.com/andresgarcia0313" \
-  -e AZP_TOKEN="" \
-  -e AZP_POOL="nexo-pool" \
-  -e AZP_AGENT_NAME="nexo-pool-linux-agent-docker2" \
-  azp-agent:linux
+# Cargar variables del .env
+set -o allexport
+source .env
+set +o allexport
+
+# Construcción de la imagen
+docker build --tag "$IMAGE_NAME" --file "$DOCKERFILE" .
+
+# Separar nombres de agentes por coma
+IFS=',' read -ra AGENTS <<< "$AGENT_NAMES"
+
+# Crear contenedores para cada agente
+for AGENT_NAME in "${AGENTS[@]}"; do
+  docker run -d \
+    --name "$AGENT_NAME" \
+    --restart unless-stopped \
+    -e AZP_URL="$AZP_URL" \
+    -e AZP_TOKEN="$AZP_TOKEN" \
+    -e AZP_POOL="$AZP_POOL" \
+    -e AZP_AGENT_NAME="$AGENT_NAME" \
+    "$IMAGE_NAME"
+done
